@@ -26,8 +26,9 @@ def convert_lcg_spec_file(lcg_spec, basepath, pck_dict, verbosity, limited=None)
         print "-- parsing:", lcg_spec["type"], "built for", lcg_spec["arch"], \
               lcg_spec["os"], "with", lcg_spec["compiler"], "as", lcg_spec["build_type"]
     type_spec = ""
-    if lcg_spec["build_type"] == "dbg":
-        type_spec = "+debug"
+    # TODO: Not every package has debug variant in spack
+    # if lcg_spec["build_type"] == "dbg":
+    #     type_spec = "+debug"
 
     if verbosity > 0:
         print "-- (", fname, ")"

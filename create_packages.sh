@@ -1,13 +1,12 @@
 #!/bin/bash
 THIS=$(dirname ${BASH_SOURCE[0]})
 
-#PLATFORM=`$THIS/getPlatform.py`
-#PLATFORM="x86_64-slc6-gcc62-opt"
 LCG_version=$1
-#root_version="6.08.06"
-#root_path="/cvmfs/sft.cern.ch/lcg/releases/${LCG_version}/ROOT/${root_version}/${PLATFORM}"
+FCC_VERSION=$2
+BUILDTYPE=$3
+PLATFORM=$4
 
-LCG_externals="/cvmfs/sft.cern.ch/lcg/releases/$LCG_version/LCG_externals_x86_64-slc6-gcc62-opt.txt"
+LCG_externals="/cvmfs/sft.cern.ch/lcg/releases/$LCG_version/LCG_externals_${PLATFORM}.txt"
 
 python $THIS/create_lcg_package_specs.py $LCG_externals
 
@@ -22,7 +21,7 @@ sed -i 's/tbb@/intel-tbb@/' $WORKSPACE/${LCG_version}_packages.yaml
 sed -i 's/java:/jdk:/' $WORKSPACE/${LCG_version}_packages.yaml
 sed -i 's/java@/jdk@/' $WORKSPACE/${LCG_version}_packages.yaml
 
-if [[ "${BUILDMODE}" == "nightly" ]]; then
+if [[ "${INSTALLTYPE}" == "nightly" ]]; then
   sed -i "s/root@v6-10-00-patches/root@6.10.00-patches/" $WORKSPACE/${LCG_version}_packages.yaml
 fi
 

@@ -10,14 +10,21 @@ else
   export FCC_VERSION=stable
 fi
 
+# Release or debug mode
+if [ ! -z $3 ]; then
+  export BUILDTYPE=$3
+else
+  export BUILDTYPE=opt
+fi
+
 THIS=$(dirname ${BASH_SOURCE[0]})
 
 # Detect platform
 TOOLSPATH=/cvmfs/fcc.cern.ch/sw/0.8.3/tools/
 if [[ $BUILDTYPE == *Release* ]]; then
-  export PLATFORM=`python $TOOLSPATH/hsf_get_platform.py --compiler $COMPILER --buildtype opt`
+  export PLATFORM=`python $TOOLSPATH/hsf_get_platform.py --compiler $COMPILER --buildtype $BUILDTYPE`
 else
-  export PLATFORM=`python $TOOLSPATH/hsf_get_platform.py --compiler $COMPILER --buildtype dbg`
+  export PLATFORM=`python $TOOLSPATH/hsf_get_platform.py --compiler $COMPILER --buildtype $BUILDTYPE`
 fi
 
 # Detect day
@@ -61,7 +68,7 @@ export COMPILERversion=${COMPILER}version
 cat $THIS/config/compiler-${COMPILER}.yaml > $SPACK_CONFIG/linux/compilers.yaml
 
 # Create packages
-source $THIS/create_packages.sh $LCG_VERSION $FCC_VERSION
+source $THIS/create_packages.sh $LCG_VERSION $FCC_VERSION $PLATFORM
 
 # Overwrite packages configuration
 mv $WORKSPACE/packages.yaml $SPACK_CONFIG/linux/packages.yaml
