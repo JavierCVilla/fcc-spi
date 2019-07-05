@@ -189,6 +189,16 @@ git clone --branch $branch https://github.com/HEP-FCC/fcc-spack.git $SPACK_ROOT/
 spack repo add $SPACK_ROOT/var/spack/repos/fcc-spack
 export HEP_SPACK=$SPACK_ROOT/var/spack/repos/hep-spack
 
+
+if [[ "$pkgname" == "fccsw" ]]; then
+  # Configure upstream installation in cvmfs
+  cp fcc-spi/config/upstreams.tpl $WORKSPACE/.spack/upstreams.yaml
+
+  # Replace externals path
+  externals=/cvmfs/fcc.cern.ch/sw/releases/externals/$FCC_VERSION/$PLATFORM
+  sed -i "s@{{EXTERNALS_PATH}}@`echo $externals`@" $WORKSPACE/.spack/upstreams.yaml
+fi
+
 gcc49version=4.9.3
 gcc62version=6.2.0
 gcc73version=7.3.0
