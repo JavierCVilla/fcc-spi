@@ -177,6 +177,12 @@ if [[ "$spacktag" == "" ]]; then
    spacktag="develop"
 fi
 
+if [[ -d $TMPDIR/spack ]]; then
+   echo "Removing existing $TMPDIR/spack directory"
+   rm -rf $TMPDIR/spack
+   check_error $? "Remove existing $TMPDIR/spack directory"
+fi
+
 echo "Cloning spack repo"
 echo "git clone --branch $spacktag https://github.com/HEP-FCC/spack.git $TMPDIR/spack"
 git clone https://github.com/HEP-FCC/spack.git -b $spacktag $TMPDIR/spack
