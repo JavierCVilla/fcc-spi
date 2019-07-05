@@ -46,7 +46,8 @@ while [ "$1" != "" ]; do
         --weekday )              shift
                                 weekday=$1
                                 ;;
-        --spack-tag )           spacktag=$1
+        --spack-tag )           shift
+                                spacktag=$1
                                 ;;
         -h | --help )           usage
                                 exit
