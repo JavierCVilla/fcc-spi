@@ -160,7 +160,7 @@ if [[ "$spacktag" == "" ]]; then
 fi
 
 echo "Cloning spack repo"
-echo "git clone https://github.com/HEP-FCC/spack.git -b $spacktag $TMPDIR/spack"
+echo "git clone --branch $spacktag https://github.com/HEP-FCC/spack.git $TMPDIR/spack"
 git clone https://github.com/HEP-FCC/spack.git -b $spacktag $TMPDIR/spack
 check_error $? "cloning spack repo from branch/tag: $spacktag"
 export SPACK_ROOT=$TMPDIR/spack
