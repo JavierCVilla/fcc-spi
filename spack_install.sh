@@ -62,7 +62,7 @@ update_latest(){
   package=$1
   lcgversion=$2
 
-  if [[ "$package" == "fccstack" ]]; then
+  if [[ "$package" == "fccsw" ]]; then
     installation="fccsw"
   else
     installation="externals"
@@ -190,13 +190,29 @@ spack repo add $SPACK_ROOT/var/spack/repos/fcc-spack
 export HEP_SPACK=$SPACK_ROOT/var/spack/repos/hep-spack
 
 
-if [[ "$pkgname" == "fccsw" ]]; then
+if [[ "$package" == "fccsw" ]]; then
   # Configure upstream installation in cvmfs
-  cp fcc-spi/config/upstreams.tpl $WORKSPACE/.spack/upstreams.yaml
+  cp $THIS/config/upstreams.tpl $SPACK_CONFIG/upstreams.yaml
+
+  # Get FCC-externals version
+  IFS=/ read -ra PART <<< "$viewpath"
+
+  # Negative indexes are not supported in the cvmfs node
+  # so we use positive indexes
+  len=${#PART[@]}
+  idx_version=$((len - 2))
+  FCC_VERSION=${PART[$idx_version]}
 
   # Replace externals path
-  externals=/cvmfs/fcc.cern.ch/sw/releases/externals/$FCC_VERSION/$PLATFORM
-  sed -i "s@{{EXTERNALS_PATH}}@`echo $externals`@" $WORKSPACE/.spack/upstreams.yaml
+  externals=/cvmfs/fcc.cern.ch/sw/releases/externals/$FCC_VERSION/$TARGET_PLATFORM
+  sed -i "s@{{EXTERNALS_PATH}}@`echo $externals`@" $SPACK_CONFIG/upstreams.yaml
+
+  echo "Upstreams configuration:"
+  cat $SPACK_CONFIG/upstreams.yaml
+  echo 
+  echo "Available packages:"
+  spack find -p
+  echo
 fi
 
 gcc49version=4.9.3
@@ -257,8 +273,14 @@ spack config get compilers
 
 # Install binaries from buildcache
 echo "Installing $package binary"
-spack buildcache install -u -f -a /$pkghash
-check_error $? "spack buildcache install ($pkgname)/$pkghash"
+
+if [[ "$package" == "fccsw" ]]; then 
+   spack buildcache install -u /$pkghash
+   check_error $? "spack buildcache install -u ($package)/$pkghash"
+else
+   spack buildcache install -u -f -a /$pkghash
+   check_error $? "spack buildcache install -u -f -a ($package)/$pkghash"
+fi
 
 # Detect day if not set
 if [[ -z ${weekday+x} ]]; then
@@ -270,7 +292,8 @@ fi
 find $prefix -type f -iname "NOTICE" | xargs rm -f
 find $prefix -type f -iname "LICENSE" | xargs rm -f
 
-# Create view
+# Create view (only for externals)
+if [[ "$package" != "fccsw" ]]; then
 if [[ "$viewpath" != "" && "$package" != "" ]]; then
   # Check if any view already exists in the target path
   if [[ -e $viewpath ]]; then
@@ -295,7 +318,7 @@ if [[ "$viewpath" != "" && "$package" != "" ]]; then
     update_latest $package $lcgversion
     check_error $? "update latest link"
   fi
-fi
+fi 
 
 # Generate setup.sh for the view
 cp $THIS/config/setup.tpl $viewpath/setup.sh
@@ -314,6 +337,7 @@ sed -i "s@{{lcg_path}}@`echo $lcg_path`@" $viewpath/setup.sh
 sed -i "s/{{PLATFORM}}/`echo $TARGET_PLATFORM`/" $viewpath/setup.sh
 sed -i "s@{{viewpath}}@`echo $viewpath`@" $viewpath/setup.sh
 check_error $? "generate setup.sh"
+fi # "$package" != "fccsw"
 
 if [ "$cleanup" = true ]; then
   echo "Cleanup"
