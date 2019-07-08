@@ -184,36 +184,10 @@ export FCC_SPACK=$SPACK_ROOT/var/spack/repos/fcc-spack
 
 # Add new repo fcc-spack
 echo "Cloning fcc-spack repo"
-echo "git clone --branch $branch https://github.com/HEP-FCC/fcc-spack.git $SPACK_ROOT/var/spack/repos/    fcc-spack"
+echo "git clone --branch $branch https://github.com/HEP-FCC/fcc-spack.git $SPACK_ROOT/var/spack/repos/fcc-spack"
 git clone --branch $branch https://github.com/HEP-FCC/fcc-spack.git $SPACK_ROOT/var/spack/repos/fcc-spack
 spack repo add $SPACK_ROOT/var/spack/repos/fcc-spack
 export HEP_SPACK=$SPACK_ROOT/var/spack/repos/hep-spack
-
-
-if [[ "$package" == "fccsw" ]]; then
-  # Configure upstream installation in cvmfs
-  cp $THIS/config/upstreams.tpl $SPACK_CONFIG/upstreams.yaml
-
-  # Get FCC-externals version
-  IFS=/ read -ra PART <<< "$viewpath"
-
-  # Negative indexes are not supported in the cvmfs node
-  # so we use positive indexes
-  len=${#PART[@]}
-  idx_version=$((len - 2))
-  FCC_VERSION=${PART[$idx_version]}
-
-  # Replace externals path
-  externals=/cvmfs/fcc.cern.ch/sw/releases/externals/$FCC_VERSION/$TARGET_PLATFORM
-  sed -i "s@{{EXTERNALS_PATH}}@`echo $externals`@" $SPACK_CONFIG/upstreams.yaml
-
-  echo "Upstreams configuration:"
-  cat $SPACK_CONFIG/upstreams.yaml
-  echo 
-  echo "Available packages:"
-  spack find -p
-  echo
-fi
 
 gcc49version=4.9.3
 gcc62version=6.2.0
@@ -253,6 +227,39 @@ fi
 echo "Mirror configuration:"
 spack mirror list
 
+if [[ "$package" == "fccsw" ]]; then
+  # Configure upstream installation in cvmfs
+  cp $THIS/config/upstreams.tpl $SPACK_CONFIG/upstreams.yaml
+
+  # Get FCC-externals version
+  IFS=/ read -ra PART <<< "$viewpath"
+
+  # Negative indexes are not supported in the cvmfs node
+  # so we use positive indexes
+  len=${#PART[@]}
+  idx_version=$((len - 2))
+  EXTERNALS_VERSION=${PART[$idx_version]}
+
+  # Replace externals path
+  externals=/cvmfs/fcc.cern.ch/sw/releases/externals/$EXTERNALS_VERSION/$TARGET_PLATFORM
+  sed -i "s@{{EXTERNALS_PATH}}@`echo $externals`@" $SPACK_CONFIG/upstreams.yaml
+
+  echo "Upstreams configuration:"
+  cat $SPACK_CONFIG/upstreams.yaml
+  echo
+  echo "Available packages:"
+  spack find -p
+  echo
+
+  # Execute a first look at the buildcache to load remote files
+  spack buildcache list -L > /dev/null
+  # Modify viewpath with the fccsw version
+  fcc_version=`spack buildcache list -L | grep $pkghash | cut -d"@" -f2`
+  prefix=${prefix/$EXTERNALS_VERSION/$fcc_version}
+
+  echo "New prefix for fccsw: $prefix"
+fi
+
 # Create config.yaml to define new prefix
 if [ "$prefix" != "" ]; then
   cp $THIS/config/config.tpl $SPACK_CONFIG/linux/config.yaml
@@ -274,7 +281,7 @@ spack config get compilers
 # Install binaries from buildcache
 echo "Installing $package binary"
 
-if [[ "$package" == "fccsw" ]]; then 
+if [[ "$package" == "fccsw" ]]; then
    spack buildcache install -u /$pkghash
    check_error $? "spack buildcache install -u ($package)/$pkghash"
 else
@@ -287,14 +294,15 @@ if [[ -z ${weekday+x} ]]; then
   export weekday=`date +%a`
 fi
 
-# Temporal until #6266 get fixed in spack
-# Avoid problems creating views
-find $prefix -type f -iname "NOTICE" | xargs rm -f
-find $prefix -type f -iname "LICENSE" | xargs rm -f
-
 # Create view (only for externals)
 if [[ "$package" != "fccsw" ]]; then
 if [[ "$viewpath" != "" && "$package" != "" ]]; then
+
+  # Temporal until #6266 get fixed in spack
+  # Avoid problems creating views
+  find $prefix -type f -iname "NOTICE" | xargs rm -f
+  find $prefix -type f -iname "LICENSE" | xargs rm -f
+
   # Check if any view already exists in the target path
   if [[ -e $viewpath ]]; then
     echo "Removing previous existing view in $viewpath"
@@ -318,7 +326,7 @@ if [[ "$viewpath" != "" && "$package" != "" ]]; then
     update_latest $package $lcgversion
     check_error $? "update latest link"
   fi
-fi 
+fi
 
 # Generate setup.sh for the view
 cp $THIS/config/setup.tpl $viewpath/setup.sh
