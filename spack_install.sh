@@ -58,6 +58,19 @@ while [ "$1" != "" ]; do
     shift
 done
 
+check_error()
+{
+    local last_exit_code=$1
+    local last_cmd=$2
+    if [[ ${last_exit_code} -ne 0 ]]; then
+        echo "${last_cmd} exited with code ${last_exit_code}"
+        echo "TERMINATING JOB"
+        exit 1
+    else
+        echo "${last_cmd} completed successfully"
+    fi
+}
+
 update_latest(){
   package=$1
   lcgversion=$2
@@ -81,18 +94,22 @@ update_latest(){
   ln -sf $TO $FROM
 }
 
-check_error()
-{
-    local last_exit_code=$1
-    local last_cmd=$2
-    if [[ ${last_exit_code} -ne 0 ]]; then
-        echo "${last_cmd} exited with code ${last_exit_code}"
-        echo "TERMINATING JOB"
-        exit 1
-    else
-        echo "${last_cmd} completed successfully"
-    fi
+create_user_friendly_access(){
+  pkghash=$1
+  from=$2
+
+  full_path=`spack find -p /${pkghash} | tail -n 1 | awk  '{print $2}'`
+  
+  TO=$full_path 
+  FROM=$from
+
+  mkdir -p `dirname $FROM`
+  # Create link to $TO path from $FROM
+  # $FROM (new path) points to $TO (existing path)
+  ln -sf $TO $FROM
+  check_error $? "Creating link from: $FROM --> to: $TO" 
 }
+
 
 
 # Create controlfile
@@ -255,9 +272,19 @@ if [[ "$package" == "fccsw" ]]; then
   spack buildcache list -L > /dev/null
   # Modify viewpath with the fccsw version
   fcc_version=`spack buildcache list -L | grep $pkghash | cut -d"@" -f2`
-  prefix=${prefix/$EXTERNALS_VERSION/$fcc_version}
+  user_prefix=${prefix/$EXTERNALS_VERSION/$fcc_version}
 
-  echo "New prefix for fccsw: $prefix"
+  # Remove last 2 components of the path (version and platform)
+  prefix=`echo $prefix | rev | cut -d'/' -f3- | rev`
+
+  # Spack requires some specific install path scheme for its internal relocation
+  # but we want to find packages in easy locations for users such as:
+  # /cvmfs/fcc.cern.ch/sw/releases/fccsw/<version>/<platform>
+  # Therefore we will install in:
+  # /cvmfs/fcc.cern.ch/sw/releases/fccsw: using the internal spack layout
+  # and link to the user friendly path
+  echo "New spack prefix for fccsw: $prefix"
+  echo "Users will find the package on: $user_prefix"
 fi
 
 # Create config.yaml to define new prefix
@@ -292,6 +319,10 @@ fi
 # Detect day if not set
 if [[ -z ${weekday+x} ]]; then
   export weekday=`date +%a`
+fi
+
+if [[ "$package" == "fccsw" ]]; then
+  create_user_friendly_access $pkghash $user_prefix
 fi
 
 # Create view (only for externals)
