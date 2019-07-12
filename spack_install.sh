@@ -237,7 +237,7 @@ cat $THIS/config/config.yaml > $SPACK_CONFIG/config.yaml
 
 # Use a default patchelf installed in fcc.cern.ch
 # spack buildcache tries to install it if it is not found
-cat $THIS/config/patchelf.yaml >> $SPACK_CONFIG/linux/packages.yaml
+sed "s@{{COMPILER}}@`echo ${!compilerversion}`@"  $THIS/config/patchelf.yaml >> $SPACK_CONFIG/linux/packages.yaml
 
 # Use a default compiler taken from cvmfs/sft.cern.ch
 source /cvmfs/sft.cern.ch/lcg/contrib/gcc/${!compilerversion}binutils/x86_64-${OS}/setup.sh
