@@ -381,6 +381,8 @@ fi
 sed -i "s@{{lcg_path}}@`echo $lcg_path`@" $viewpath/setup.sh
 sed -i "s/{{PLATFORM}}/`echo $TARGET_PLATFORM`/" $viewpath/setup.sh
 sed -i "s@{{viewpath}}@`echo $viewpath`@" $viewpath/setup.sh
+gaudi_dir=`spack find -p gaudi | tail -n 1 | awk  '{print $2}'` 
+sed -i "s@{{Gaudi_DIR}}@`echo $gaudi_dir`@" $viewpath/setup.sh 
 check_error $? "generate setup.sh"
 fi # "$package" != "fccsw"
 

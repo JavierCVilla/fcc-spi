@@ -74,5 +74,8 @@ add_to_path PYTHONPATH $THIS_DIR/python
 
 export PATH=$LCGPREFIX/contrib/CMake/3.8.1/Linux-x86_64/bin:${PATH}
 
+# Setup Gaudi_DIR since cmake files are not properly added to the LCG View
+export Gaudi_DIR={{GAUDI_DIR}}
+
 # Export path to the FCC view
 export FCCVIEW=$THIS_DIR
