@@ -59,5 +59,4 @@ cat << EOF >> $WORKSPACE/packages.yaml
   py-gitpython: 
     buildable: false 
     paths: {py-gitpython@2.1.8-0%gcc@${!compilerversion} arch=x86_64-${OS}: /cvmfs/fcc.cern.ch/sw/0.8.3/gitpython/lib/python2.7/site-packages} 
-EOF 
-
+EOF
