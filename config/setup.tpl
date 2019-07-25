@@ -50,6 +50,8 @@ add_to_path PYTHONPATH /cvmfs/fcc.cern.ch/sw/0.8.3/gitpython/lib/python2.7/site-
 # Add FCC software to the environment
 # Setup PATH
 add_to_path PATH $THIS_DIR/bin
+# Requested on https://github.com/HEP-FCC/FCCSW/pull/356
+add_to_path PATH $THIS_DIR/scripts
 
 # Setup LD_LIBRARY_PATH
 add_to_path LD_LIBRARY_PATH $THIS_DIR/lib
@@ -65,6 +67,8 @@ add_to_path CMAKE_PREFIX_PATH $LCGPATH
 
 # Setup PYTHONPATH
 add_to_path PYTHONPATH $THIS_DIR/python
+# Requested on https://github.com/HEP-FCC/FCCSW/pull/356
+add_to_path PYTHONPATH $THIS_DIR/lib
 
 # Setup cmake from LCG contrib
 # Temporal change to fix a bug at configuration time with FCCSW when
