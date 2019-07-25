@@ -7,7 +7,11 @@ compilers:
     - /cvmfs/sft.cern.ch/lcg/releases/binutils/2.30-e5b21/x86_64-slc6/bin
     - /cvmfs/sft.cern.ch/lcg/releases/binutils/2.30-e5b21/x86_64-slc6/lib
     flags:
-     cppflags: -std=c++17
+       # -lrt: in slc6 ldd is taken from the system (GNU libc 2.12), which
+       # does not include rt by default, so we need to pass this library.
+       # This avoids errors building against Boost for version higher than 1.67
+       # * Since glibc 2.17, the library linking -rt is no longer required.
+       cppflags: -lrt -std=c++17
     modules: []
     operating_system: scientificcernslc6
     paths:
