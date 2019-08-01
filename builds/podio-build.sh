@@ -17,5 +17,5 @@ cd $WORKSPACE/podio/build
 #---Run installation------------------------------------------------------------------------
 cmake -DCMAKE_INSTALL_PREFIX=../install ..
 make -j$(nproc)
-make install
 make test
+make install
