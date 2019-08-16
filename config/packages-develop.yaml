@@ -16,3 +16,5 @@
     version: [1.0.8]
   py-fcchhanalyses:
     version: [0.1.1]
+  delphes:
+    version: [3.4.2pre18]
