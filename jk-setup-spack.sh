@@ -91,3 +91,12 @@ sed -i "s#EXTRA_LIBS#`echo $EXTRA_LIBS`#" $SPACK_CONFIG/linux/compilers.yaml
 
 # TEMP Remove tbb from hep-spack
 rm -rf $HEP_SPACK/packages/tbb
+
+# Set up external buildcaches in EOS
+url_nightlies_buildcache="https://fccsw.web.cern.ch/fccsw/binaries/nightlies"
+url_releases_buildcache="https://fccsw.web.cern.ch/fccsw/binaries/releases"
+spack mirror add eos_nightlies_buildcache $url_nightlies_buildcache
+spack mirror add eos_releases_buildcache $url_releases_buildcache
+echo "Using the following external buildcaches: "
+spack mirror list
+
