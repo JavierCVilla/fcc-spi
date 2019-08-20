@@ -386,6 +386,18 @@ sed -i "s@{{Gaudi_DIR}}@`echo $gaudi_dir`@" $viewpath/setup.sh
 check_error $? "generate setup.sh"
 fi # "$package" != "fccsw"
 
+# Replace shebang line from xenv
+if test -f $viewpath/bin/xenv; then
+   # The 1 option replaces the first line
+   # The whole first line gets replaced by the new shebang
+   # Spack uses an absolute path to the installed python because it relies on
+   # rpath, however after relocating the package to cvmfs, the path is so long
+   # that it fails.
+   # Since we will use this software setting up the environment, we take
+   # the first python found in the path
+   sed '1 s@^.*$@#!/usr/bin/env python\n# Shebang line automatically replaced with sed to pick python from the environment@'
+fi
+
 if [ "$cleanup" = true ]; then
   echo "Cleanup"
   rm -rf $TMPDIR
