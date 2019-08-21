@@ -395,7 +395,8 @@ if test -f $viewpath/bin/xenv; then
    # that it fails.
    # Since we will use this software setting up the environment, we take
    # the first python found in the path
-   sed '1 s@^.*$@#!/usr/bin/env python\n# Shebang line automatically replaced with sed to pick python from the environment@'
+   sed -i '1 s@^.*$@#!/usr/bin/env python\n# Shebang line automatically replaced with sed to pick python from the environment@' $viewpath/bin/xenv
+   check_error $? "patch shebang in $viewpath/bin/xenv"
 fi
 
 if [ "$cleanup" = true ]; then
