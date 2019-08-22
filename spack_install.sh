@@ -184,7 +184,7 @@ if [[ -d $TMPDIR/spack ]]; then
 fi
 
 echo "Cloning spack repo"
-echo "git clone --branch $spacktag https://github.com/HEP-FCC/spack.git $TMPDIR/spack"
+echo "git clone https://github.com/HEP-FCC/spack.git -b $spacktag $TMPDIR/spack"
 git clone https://github.com/HEP-FCC/spack.git -b $spacktag $TMPDIR/spack
 check_error $? "cloning spack repo from branch/tag: $spacktag"
 export SPACK_ROOT=$TMPDIR/spack
@@ -205,10 +205,16 @@ git clone https://github.com/HEP-SF/hep-spack.git $SPACK_ROOT/var/spack/repos/he
 spack repo add $SPACK_ROOT/var/spack/repos/hep-spack
 export FCC_SPACK=$SPACK_ROOT/var/spack/repos/fcc-spack
 
+# Check fcc-spack branch is not empty
+if [[ -z "$branch" ]]; then
+  echo "Error: Branch not defined for the fcc-spack repo ($branch)"
+  exit 1
+fi
+
 # Add new repo fcc-spack
 echo "Cloning fcc-spack repo"
-echo "git clone --branch $branch https://github.com/HEP-FCC/fcc-spack.git $SPACK_ROOT/var/spack/repos/fcc-spack"
-git clone --branch $branch https://github.com/HEP-FCC/fcc-spack.git $SPACK_ROOT/var/spack/repos/fcc-spack
+echo "git clone https://github.com/HEP-FCC/fcc-spack.git - $branch SPACK_ROOT/var/spack/repos/fcc-spack"
+git clone https://github.com/HEP-FCC/fcc-spack.git -b $branch $SPACK_ROOT/var/spack/repos/fcc-spack
 spack repo add $SPACK_ROOT/var/spack/repos/fcc-spack
 export HEP_SPACK=$SPACK_ROOT/var/spack/repos/hep-spack
 
