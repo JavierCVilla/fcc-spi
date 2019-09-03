@@ -43,20 +43,20 @@ cat $THIS/config/packages-${FCC_VERSION}.yaml >> $WORKSPACE/packages.yaml
 
 # Custom packages
 
-# Gitpython python package 
-IFS=- read -ra PART <<< "$PLATFORM" 
-OS="${PART[1]}"  
-COMPILER="${PART[2]}" 
- 
-gcc49version=4.9.3                                                               
-gcc62version=6.2.0                                                               
-gcc73version=7.3.0                                                               
-gcc8version=8.2.0 
- 
-export compilerversion=${COMPILER}version  
-  
-cat << EOF >> $WORKSPACE/packages.yaml 
-  py-gitpython: 
-    buildable: false 
-    paths: {py-gitpython@2.1.8-0%gcc@${!compilerversion} arch=x86_64-${OS}: /cvmfs/fcc.cern.ch/sw/0.8.3/gitpython/lib/python2.7/site-packages} 
+# Gitpython python package
+IFS=- read -ra PART <<< "$PLATFORM"
+OS="${PART[1]}"
+COMPILER="${PART[2]}"
+
+gcc49version=4.9.3
+gcc62version=6.2.0
+gcc73version=7.3.0
+gcc8version=8.3.0
+
+export compilerversion=${COMPILER}version
+
+cat << EOF >> $WORKSPACE/packages.yaml
+  py-gitpython:
+    buildable: false
+    paths: {py-gitpython@2.1.8-0%gcc@${!compilerversion} arch=x86_64-${OS}: /cvmfs/fcc.cern.ch/sw/0.8.3/gitpython/lib/python2.7/site-packages}
 EOF
