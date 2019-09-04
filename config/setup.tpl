@@ -55,7 +55,6 @@ add_to_path PATH $THIS_DIR/scripts
 
 # Setup LD_LIBRARY_PATH
 add_to_path LD_LIBRARY_PATH $THIS_DIR/lib
-add_to_path LD_LIBRARY_PATH $THIS_DIR/tests
 
 # Setup ROOT_INCLUDE_PATH
 add_to_path ROOT_INCLUDE_PATH $THIS_DIR/include
