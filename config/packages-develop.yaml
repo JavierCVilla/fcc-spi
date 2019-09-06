@@ -16,3 +16,5 @@
     version: [1.0.8]
   py-fcchhanalyses:
     version: [0.1.1]
+  guinea-pig:
+    version: [1.2.2rc]
