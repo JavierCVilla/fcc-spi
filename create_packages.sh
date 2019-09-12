@@ -48,10 +48,24 @@ IFS=- read -ra PART <<< "$PLATFORM"
 OS="${PART[1]}"
 COMPILER="${PART[2]}"
 
+# Set up compiler
+python $THIS/get_compiler.py $LCG_externals
+lcg_compiler=`cat lcg_compiler.txt`
+
+# Default values
 gcc49version=4.9.3
 gcc62version=6.2.0
 gcc73version=7.3.0
-gcc8version=8.2.0
+gcc8version=8.3.0
+
+# gcc8 is an abstraction of the full versio (8.2.0, 8.3.0, ...), hence it can point
+# to different specific version of gcc-8.X.X
+IFS='.' read -ra lcg_compiler_version <<< "$lcg_compiler"
+COMPILER_TWO_DIGITS="${lcg_compiler_version[0]}${lcg_compiler_version[1]}"
+
+if [ $COMPILER_TWO_DIGITS == "82" ]; then
+    gcc8version=8.2.0
+fi
 
 export compilerversion=${COMPILER}version
 

@@ -62,21 +62,33 @@ if [ ! -d $FCC_REPO ]; then
 fi
 spack repo add $FCC_REPO
 
-gcc49version=4.9.3
-gcc62version=6.2.0
-gcc73version=7.3.0
-gcc8version=8.2.0
-export COMPILERversion=${COMPILER}version
-
-# Prepare defaults/linux configuration files (compilers and external packages)
-cat $THIS/config/compiler-${OS}-${COMPILER}.yaml > $SPACK_CONFIG/linux/compilers.yaml
-cat $THIS/config/config.yaml > $SPACK_CONFIG/config.yaml
-
 # Create packages
 source $THIS/create_packages.sh
 
 # Overwrite packages configuration
 mv $WORKSPACE/packages.yaml $SPACK_CONFIG/linux/packages.yaml
+
+# Set up compiler
+# Default values
+gcc49version=4.9.3
+gcc62version=6.2.0
+gcc73version=7.3.0
+gcc8version=8.3.0
+export COMPILERversion=${COMPILER}version
+
+# gcc8 is an abstraction of the full versio (8.2.0, 8.3.0, ...), hence it can point
+# to different specific version of gcc-8.X.X
+lcg_compiler_version=`cat lcg_compiler.txt`
+IFS='.' read -ra lcg_compiler_version <<< "$lcg_compiler"
+COMPILER_TWO_DIGITS="${lcg_compiler_version[0]}${lcg_compiler_version[1]}"
+
+if [ $COMPILER_TWO_DIGITS == "82" ]; then
+    gcc8version=8.2.0
+fi
+
+# Prepare defaults/linux configuration files (compilers and external packages)
+cat $THIS/config/compiler-${OS}-gcc${COMPILER_TWO_DIGITS}.yaml > $SPACK_CONFIG/linux/compilers.yaml
+cat $THIS/config/config.yaml > $SPACK_CONFIG/config.yaml
 
 # Use a default compiler taken from cvmfs/sft.cern.ch
 source /cvmfs/sft.cern.ch/lcg/contrib/gcc/${!COMPILERversion}binutils/x86_64-${OS}/setup.sh
