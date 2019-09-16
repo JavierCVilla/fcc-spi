@@ -102,4 +102,4 @@ EXTRA_LIBS="${tbb_lib}:${root_lib}"
 sed -i "s#EXTRA_LIBS#`echo $EXTRA_LIBS`#" $SPACK_CONFIG/linux/compilers.yaml
 
 # TEMP Remove tbb from hep-spack
-rm -rf $HEP_SPACK/packages/tbb
+rm -rf $HEP_REPO/packages/tbb
