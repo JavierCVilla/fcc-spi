@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -x
+
 usage()
 {
     if [[ -n "$1" ]]; then
