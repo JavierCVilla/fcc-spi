@@ -218,8 +218,16 @@ git clone https://github.com/HEP-FCC/fcc-spack.git -b $branch $SPACK_ROOT/var/sp
 spack repo add $SPACK_ROOT/var/spack/repos/fcc-spack
 export HEP_SPACK=$SPACK_ROOT/var/spack/repos/hep-spack
 
-# Create packages
-source $THIS/create_packages.sh
+# Get compiler from LCG_externals
+if [[ $lcgversion == LCG_* ]]; then
+  LCG_externals="/cvmfs/sft.cern.ch/lcg/releases/$lcgversion/LCG_*_${PLATFORM}.txt"
+else
+  LCG_externals="/cvmfs/sft.cern.ch/lcg/nightlies/$lcgversion/$weekday/LCG_*_${PLATFORM}.txt"
+fi
+
+# Set up compiler
+python $THIS/get_compiler.py $LCG_externals
+lcg_compiler=`cat lcg_compiler.txt`
 
 # Set up compiler
 # Default values
