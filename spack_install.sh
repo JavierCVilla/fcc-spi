@@ -222,7 +222,7 @@ export HEP_SPACK=$SPACK_ROOT/var/spack/repos/hep-spack
 
 # Get compiler from LCG_externals
 if [[ $lcgversion == LCG_* ]]; then
-  LCG_externals="/cvmfs/sft.cern.ch/lcg/releases/$lcgversion/LCG_*_${PLATFORM}.txt"
+  LCG_externals="/cvmfs/sft.cern.ch/lcg/releases/$lcgversion/LCG_*_${TARGET_ARCH}-${TARGET_OS}-${TARGET_COMPILER}-*.txt"
 else
   LCG_externals="/cvmfs/sft.cern.ch/lcg/nightlies/$lcgversion/$weekday/LCG_*_${PLATFORM}.txt"
 fi
