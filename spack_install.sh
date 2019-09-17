@@ -99,15 +99,15 @@ create_user_friendly_access(){
   from=$2
 
   full_path=`spack find -p /${pkghash} | tail -n 1 | awk  '{print $2}'`
-  
-  TO=$full_path 
+
+  TO=$full_path
   FROM=$from
 
   mkdir -p `dirname $FROM`
   # Create link to $TO path from $FROM
   # $FROM (new path) points to $TO (existing path)
   ln -sf $TO $FROM
-  check_error $? "Creating link from: $FROM --> to: $TO" 
+  check_error $? "Creating link from: $FROM --> to: $TO"
 }
 
 
@@ -218,10 +218,25 @@ git clone https://github.com/HEP-FCC/fcc-spack.git -b $branch $SPACK_ROOT/var/sp
 spack repo add $SPACK_ROOT/var/spack/repos/fcc-spack
 export HEP_SPACK=$SPACK_ROOT/var/spack/repos/hep-spack
 
+# Create packages
+source $THIS/create_packages.sh
+
+# Set up compiler
+# Default values
 gcc49version=4.9.3
 gcc62version=6.2.0
 gcc73version=7.3.0
-gcc8version=8.2.0
+gcc8version=8.3.0
+
+# gcc8 is an abstraction of the full versio (8.2.0, 8.3.0, ...), hence it can point
+# to different specific version of gcc-8.X.X
+lcg_compiler_version=`cat lcg_compiler.txt`
+IFS='.' read -ra lcg_compiler_version <<< "$lcg_compiler"
+COMPILER_TWO_DIGITS="${lcg_compiler_version[0]}${lcg_compiler_version[1]}"
+
+if [ $COMPILER_TWO_DIGITS == "82" ]; then
+    gcc8version=8.2.0
+fi
 
 if [[ "$PLATFORMCOMPILER" != "$compiler"  ]]; then
    echo "ERROR: Platform compiler (${PLATFORMCOMPILER}) and selected compiler (${compiler}) do not match"
@@ -232,11 +247,11 @@ export compilerversion=${compiler}version
 
 # Prepare defaults/linux configuration files (compilers and external packages)
 # Add compiler compatible with the host platform
-cat $THIS/config/compiler-${OS}-${PLATFORMCOMPILER}.yaml > $SPACK_CONFIG/linux/compilers.yaml
+cat $THIS/config/compiler-${OS}-gcc${COMPILER_TWO_DIGITS}.yaml > $SPACK_CONFIG/linux/compilers.yaml
 
 # Add compiler compatible with the target platform (without head line)
 if [[ "$OS-$PLATFORMCOMPILER" != "$TARGET_OS-$TARGET_COMPILER" ]]; then
-  cat $THIS/config/compiler-${TARGET_OS}-${TARGET_COMPILER}.yaml | tail -n +2 >> $SPACK_CONFIG/linux/compilers.yaml
+  cat $THIS/config/compiler-${TARGET_OS}-${COMPILER_TWO_DIGITS}.yaml | tail -n +2 >> $SPACK_CONFIG/linux/compilers.yaml
 fi
 
 cat $THIS/config/config.yaml > $SPACK_CONFIG/config.yaml
@@ -387,8 +402,8 @@ fi
 sed -i "s@{{lcg_path}}@`echo $lcg_path`@" $viewpath/setup.sh
 sed -i "s/{{PLATFORM}}/`echo $TARGET_PLATFORM`/" $viewpath/setup.sh
 sed -i "s@{{viewpath}}@`echo $viewpath`@" $viewpath/setup.sh
-gaudi_dir=`spack find -p gaudi | tail -n 1 | awk  '{print $2}'` 
-sed -i "s@{{Gaudi_DIR}}@`echo $gaudi_dir`@" $viewpath/setup.sh 
+gaudi_dir=`spack find -p gaudi | tail -n 1 | awk  '{print $2}'`
+sed -i "s@{{Gaudi_DIR}}@`echo $gaudi_dir`@" $viewpath/setup.sh
 check_error $? "generate setup.sh"
 fi # "$package" != "fccsw"
 
