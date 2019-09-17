@@ -261,7 +261,7 @@ cat $THIS/config/compiler-${OS}-gcc${COMPILER_TWO_DIGITS}.yaml > $SPACK_CONFIG/l
 
 # Add compiler compatible with the target platform (without head line)
 if [[ "$OS-$PLATFORMCOMPILER" != "$TARGET_OS-$TARGET_COMPILER" ]]; then
-  cat $THIS/config/compiler-${TARGET_OS}-${COMPILER_TWO_DIGITS}.yaml | tail -n +2 >> $SPACK_CONFIG/linux/compilers.yaml
+  cat $THIS/config/compiler-${TARGET_OS}-gcc${COMPILER_TWO_DIGITS}.yaml | tail -n +2 >> $SPACK_CONFIG/linux/compilers.yaml
 fi
 
 cat $THIS/config/config.yaml > $SPACK_CONFIG/config.yaml
