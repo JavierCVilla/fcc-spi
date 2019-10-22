@@ -81,14 +81,232 @@ These are jobs that run every night or on a daily basis, each with a different p
 
 ### CVMFS
 
-
+**Todo**
 
  in a fast, scalable, and reliable way
 
 ### CDash
 
-
+**Todo**
 
 ### FCC Jira Issues
 
+**Todo**
 
+
+## Building the stack
+
+**Note**: The following steps only work for CentOS7 and SLC6.
+
+All the required scripts are hosted in the [fcc-spi](https://github.com/HEP-FCC/fcc-spi) repo:
+
+```
+git clone https://github.com/hep-fcc/fcc-spi
+```
+
+### Prepare the environment
+
+These script are prepared to be run inside jenkins and they rely on the following environment variables to be set:
+
+- `LCG_VERSION`: LCG Version used to build against (`LCG_96b`, `LCG_95`, `dev4`, ...).
+- `FCC_VERSION`: FCC Version of the externals to build on top of the previous LCG stack.
+- `COMPILER`: defines the compiler version using the same format as for the LCG Release (`gcc8`, `gcc7`, `gcc62`, ...).
+- `BUILDTYPE`: `Release` for an `opt` build or `Debug` for a `dbg` build. This will be reflected in the name of the platform (i.e: `x86_64-centos7-gcc8-opt` vs `x86_64-centos7-gcc8-dbg`).
+- `WORKSPACE`: This variable is automatically set by Jenkins to the current workspace. In our case, this is equivalent to the directory where `fcc-spi` was cloned.
+- `weekday`: This variable is used if the LCG version corresponds to a development LCG version (i.e: `dev4`) then it runs considering the last LCG stack built for the day specified by `weekday`.
+
+These variables can be defined with their corresponding default values by running:
+
+```
+source fcc-spi/quick-setup.sh
+```
+
+### Check the environment
+
+After preparing the environment, `spack` is ready to install new packages on top of the LCG Release selected. To check the selected configuration, the following commands may be interesting:
+
+- List known compiler:
+
+```
+$ spack compilers
+==> Available compilers
+-- gcc centos7-x86_64 -------------------------------------------
+gcc@8.3.0
+```
+
+- Show spack configuration:
+
+```
+$ spack config get config
+config:
+  debug: false
+  checksum: true
+  verify_ssl: true
+  dirty: false
+  build_jobs: 16
+  install_tree: $spack/opt/spack
+  template_dirs:
+  - $spack/share/spack/templates
+  install_path_scheme: ${ARCHITECTURE}/${COMPILERNAME}-${COMPILERVER}/${PACKAGE}-${VERSION}-${HASH}
+  module_roots:
+    tcl: $spack/share/spack/modules
+    lmod: $spack/share/spack/lmod
+    dotkit: $spack/share/spack/dotkit
+  build_stage:
+  - $tempdir
+  - $spack/var/spack/stage
+  source_cache: $spack/var/spack/cache
+  misc_cache: ~/.spack/cache
+  install_missing_compilers: false
+  build_language: C
+  locks: true
+  ccache: false
+  db_lock_timeout: 120
+  package_lock_timeout: null
+```
+
+In order to avoid conflicts with other `spack` instances present in the system, we modify the $HOME directory to point to our current $WORKSPACE. As a consequence, the hidden spack configuration files are locate in `$WORKSPACE/.spack`
+
+```
+$ ls -R $WORKSPACE/.spack
+.spack:
+config.yaml  linux
+
+.spack/linux:
+compilers.yaml  packages.yaml  repos.yaml
+```
+
+- Show default configuration for packages taken from the LCG Release:
+
+```
+$ cat $WORKSPACE/.spack/linux/packages.yaml
+
+packages:
+  all:
+    compiler: [gcc, intel, pgi, clang, xl, nag]
+    providers:
+      awk: [gawk]
+      blas: [openblas]
+      daal: [intel-daal]
+      elf: [elfutils]
+      golang: [gcc]
+      ipp: [intel-ipp]
+      java: [jdk]
+      lapack: [openblas]
+      mkl: [intel-mkl]
+      mpe: [mpe2]
+      mpi: [openmpi, mpich]
+      opencl: [pocl]
+      openfoam: [openfoam-com, openfoam-org, foam-extend]
+      pil: [py-pillow]
+      scalapack: [netlib-scalapack]
+      szip: [libszip, libaec]
+      tbb: [intel-tbb]
+      jpeg: [libjpeg-turbo, libjpeg]
+  4suite:
+    buildable: false
+    paths: {4suite@1.0.2p1%gcc@8.3.0  arch=x86_64-centos7: /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/4suite/1.0.2p1/x86_64-centos7-gcc8-opt}
+  absl_py:
+    buildable: false
+    paths: {absl_py@0.7.1%gcc@8.3.0  arch=x86_64-centos7: /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/absl_py/0.7.1/x86_64-centos7-gcc8-opt}
+  agile:
+    buildable: false
+    paths: {agile@1.5.0%gcc@8.3.0  arch=x86_64-centos7: /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/MCGenerators/agile/1.5.0/x86_64-centos7-gcc8-opt}
+  aida:
+    buildable: false
+    paths: {aida@3.2.1%gcc@8.3.0  arch=x86_64-centos7: /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/AIDA/3.2.1/x86_64-centos7-gcc8-opt}
+  alpgen:
+    buildable: false
+    paths: {alpgen@2.1.4%gcc@8.3.0  arch=x86_64-centos7: /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/MCGenerators/alpgen/2.1.4/x86_64-centos7-gcc8-opt}
+  arrow:
+    buildable: false
+    paths: {arrow@0.14.1%gcc@8.3.0  arch=x86_64-centos7: /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/arrow/0.14.1/x86_64-centos7-gcc8-opt}
+  asn1crypto:
+    buildable: false
+    paths: {asn1crypto@0.24.0%gcc@8.3.0  arch=x86_64-centos7: /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/asn1crypto/0.24.0/x86_64-centos7-gcc8-opt}
+  astor:
+    buildable: false
+    paths: {astor@0.8.0%gcc@8.3.0  arch=x86_64-centos7: /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/astor/0.8.0/x86_64-centos7-gcc8-opt}
+
+...
+```
+
+The previous `packages.yaml` file is filled with `fcc-spi/create_packages.sh` which is called inside `fcc-spi/jk-setup-spack.sh`
+
+### Install a package
+
+New packages can be built and installed using the following command:
+
+```
+spack install <package_name>
+```
+
+Notice that the package name might differ with respect to the names used by the `lcgcmake` system (package manager tool for the LCG Releases).
+
+To install `acts-core`:
+
+```
+spack install acts-core
+$ spack install acts-core
+==> boost@1.70.0 : externally installed in /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/Boost/1.70.0/x86_64-centos7-gcc8-opt
+==> boost@1.70.0 : generating module file
+==> boost@1.70.0 : registering into DB
+==> cmake@3.14.3 : externally installed in /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/CMake/3.14.3/x86_64-centos7-gcc8-opt
+==> cmake@3.14.3 : generating module file
+==> cmake@3.14.3 : registering into DB
+==> dd4hep@01-10 : externally installed in /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/DD4hep/01-10/x86_64-centos7-gcc8-opt
+==> dd4hep@01-10 : generating module file
+==> dd4hep@01-10 : registering into DB
+==> doxygen@1.8.15 : externally installed in /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/doxygen/1.8.15/x86_64-centos7-gcc8-opt
+==> doxygen@1.8.15 : generating module file
+==> doxygen@1.8.15 : registering into DB
+==> eigen@3.3.7 : externally installed in /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/eigen/3.3.7/x86_64-centos7-gcc8-opt
+==> eigen@3.3.7 : generating module file
+==> eigen@3.3.7 : registering into DB
+==> graphviz@2.40.1 : externally installed in /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/graphviz/2.40.1/x86_64-centos7-gcc8-opt
+==> graphviz@2.40.1 : generating module file
+==> graphviz@2.40.1 : registering into DB
+==> root@6.18.04 : externally installed in /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/ROOT/6.18.04/x86_64-centos7-gcc8-opt
+==> root@6.18.04 : generating module file
+==> root@6.18.04 : registering into DB
+==> Installing acts-core
+==> Searching for binary cache of acts-core
+==> Warning: No Spack mirrors are currently configured
+==> No binary for acts-core found: installing from source
+==> Fetching https://gitlab.cern.ch/acts/acts-core/repository/v0.07.01/archive.tar.gz
+######################################################################## 100.0%
+==> Staging archive: /build/dir/spack/var/spack/stage/acts-core-0.07.01-jk6hz5q65rdsey2grjxmv6jfzvtgfyqq/archive.tar.gz
+==> Created stage in /build/dir/spack/var/spack/stage/acts-core-0.07.01-jk6hz5q65rdsey2grjxmv6jfzvtgfyqq
+==> Applied patch /build/dir/spack/var/spack/repos/fcc-spack/packages/acts-core/cmake-TGEO.patch
+==> Building acts-core [CMakePackage]
+==> Executing phase: 'cmake'
+==> Executing phase: 'build'
+==> Executing phase: 'install'
+==> Successfully installed acts-core
+  Fetch: 1.81s.  Build: 4m 0.01s.  Total: 4m 1.82s.
+[+] /build/dir/spack/opt/spack/linux-centos7-x86_64/gcc-8.3.0/acts-core-0.07.01-jk6hz5q65rdsey2grjxmv6jfzvtgfyq
+```
+
+The previous output shows that `boost`, `cmake`, `dd4hep` and `root` packages, among others, are already provided by the LCG_96b release and therefore are picked from cvmfs instead of installing them.
+
+New packages are by default installed inside `$WORKSPACE/spack/opt`.
+
+Given the configuration options defined inside `packages.yaml`, if we try to build a package already provided by the LCG release, `spack` will automatically consider it as installed:
+
+```
+spack install root
+$ spack install root
+==> root@6.18.04 : externally installed in /cvmfs/sft.cern.ch/lcg/releases/LCG_96b/ROOT/6.18.04/x86_64-centos7-gcc8-opt
+==> root@6.18.04 : already registered in DB
+==> root@6.18.04 : marking the package explicit
+```
+
+With this configuration, package versions which are not provided by the choosen LCG Release will directly fail, since every package is mark with the flag `buildable: false` inside `packages.yaml` to avoid inconsistencies.
+
+### Building all the fcc-externals
+
+We call `fcc-externals` to the group of packages which are FCC-specific or not provided by the LCG Releases. These packages are listed as dependencies of a `dummy` package called `fccdevel`. Therefore, `spack install fccdevel` installs the group of packages known as `fcc-externals`.  
+
+## Nightlies
+
+**ToDo**
