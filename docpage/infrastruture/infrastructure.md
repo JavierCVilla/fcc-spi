@@ -8,11 +8,9 @@ FCC Software Infrastructure
 Table of Content:
 
 - Main components
-- Workflow
-- Releases
+- Building the stack
 - Nightlies
-- Using the FCC Software
-
+- Releases
 
 ## Main components
 
@@ -309,4 +307,37 @@ We call `fcc-externals` to the group of packages which are FCC-specific or not p
 
 ## Nightlies
 
-**ToDo**
+FCC Nightlies are built using Spack as described before. Additionally, the corresponding Jenkins jobs are configured to generate binary files out of each installed package such that they can be installed and relocated into the CVMFS repository.
+
+Nightlies are built using the Jenkins job [FCC-nightlies](https://epsft-jenkins.cern.ch/view/FCC/job/FCC-nightlies/), which runs everyday at 15:25. At this time, the LCG builds should be already present in CVMFS in case of building against one of the development version (`dev3`, `dev4`). Otherwise, the build gets aborted.
+
+### Manual builds
+
+Nightly builds can be [manually triggered](https://epsft-jenkins.cern.ch/view/FCC/job/FCC-nightlies/build):
+
+![](../images/fcc-nightlies-build.png)
+
+- `LCG_VERSION`: LCG version to build against. It must be a valid release or nightly version and be already available in CVMFS.
+- `FCC_VERSION`: Version of the FCC Externals to be installed. This is the equivalent to the `heptools-<VERSION>` files in LCGCMake. The specify `FCC_VERSION` will determine the `packages-<FCC_VERSION>.yaml` file picked from the `config` directory on the `fcc-spi` repository.
+- `Combinations`: Each marked combination will spawn a different build for the compiler and operating system specified. By default, `gcc8` and `centos7`, `slc6` are marked.
+- `CVMFS_INSTALL`: This flags determines whether the built packages should be install to CVMFS. If not marked, it will just build the required packages in a build node, without installing in CVMFS, which a good way to debug or to check that the build part is properly working for a given combination of options.
+- `GITHUB_FCCSPACK_REPO`: Specify the Branch/Tag to be cloned from [https://github.com/HEP-FCC/fcc-spack](https://github.com/HEP-FCC/fcc-spack). This allows us to go back in time to previous releases of the different repositories required at build time.
+- `GITHUB_FCCSPI_REPO`: Same as before, but for the `fcc-spi` repository.
+
+### Build configuration
+
+As for the internal configuration of the job itself, the shell script does the heavy lifting:
+
+- Read the environment variables set by Jenkins and creates a `setup.sh` script with their values, so in case of debugging one can just source this script and get the same environment as for the build job.
+- Run `fcc-spi/jk-setup-spack.sh` to download spack, clone some required spack `repos` (`hep-spack` and `fcc-spack`) with non-official spack recipes and place then at the correct location (`spack/var/spack/repos`).
+- Setup the CDash options to send build results to server.
+- Install the FCC software stack for the specified compiler. In particular it installs `fccdevel` which is a dummy package that contains all the fcc-externals declared as dependencies.
+- Get hash of the installed package, this hash identifies our whole installation so we can reproduce the same build, ensuring the same combination of hashes for every installed package, i.e. our dummy package `fccdevel` and all its dependencies (`podio`, `fcc-edm`, ...).
+- If the `CVMFS_INSTALL` flag was enabled:
+  + Install patchelf, since this packages is needed to create the binary files.
+  + Create a local build cache where all binaries will be generated (equivalent to tarfiles in LCGCMake).
+  + Sends over all binary files to the cvmfs publisher node.
+  + Dump all relevant environment variables to a file which is then use on [FCC-cvmfs-install-nightlies](https://epsft-jenkins.cern.ch/view/FCC/job/FCC-cvmfs-install-nightlies/) to reproduce the same environment.
+- Finally prints a summary of the installed packages and its location, since they will be either taken from CVMFS or locally installed in the machine.
+
+Note that if the build part did not success, then the installation to CVMFS will be aborted and hence the [FCC-cvmfs-install-nightlies](https://epsft-jenkins.cern.ch/view/FCC/job/FCC-cvmfs-install-nightlies/) will not be run.
