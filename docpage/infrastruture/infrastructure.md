@@ -39,7 +39,7 @@ Repositories on this project can be classified on three main categories:
 
 ### Jenkins
 
-FCC makes use of the Jenkins server hosted and mantained by the EP-SFT team: [https://epsft-jenkins.cern.ch](https://epsft-jenkins.cern.ch).
+FCC makes use of the Jenkins server hosted and maintained by the EP-SFT team: [https://epsft-jenkins.cern.ch](https://epsft-jenkins.cern.ch).
 Inside this server, there is a dedicated view for the [FCC Projects](https://epsft-jenkins.cern.ch/view/FCC/).
 
 Current operations run through Jenkins are:
@@ -60,6 +60,9 @@ For each package configured with this continuous integration process we have thr
 
 In the case of FCCSW the result of the last job (`<package_name>-pullrequest-build`) the result of the CMake build and tests is reported
 to the CDash dashboard and grouped into a [slot dedicated to Pull Requests](https://cdash.cern.ch/index.php?project=FCC#PullRequests).
+
+The connection between Jenkins and Github is done through [this code](https://github.com/HEP-FCC/jenkins-pipelines). To add new platforms to the default configuration where pull-requests run on, add them to
+[this file](https://github.com/HEP-FCC/jenkins-pipelines/blob/master/src/cern/root/pipeline/BuildConfiguration.groovy#L28-L35).
 
 **Nightlies**
 
